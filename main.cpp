@@ -5,10 +5,10 @@
 
 
 int main() {
-    cost_matrix_t cm = {{INF, 10, 8,   19, 12},
-                      {10, INF, 20,  6,  3},
-                      {8,   20, INF, 4,  2},
-                      {19,  6,  4, INF,  7},
+    cost_matrix_t cm = {{INF, 10, 8,   19, 12}, // INF cost when trying to travel to current city, matrix is symetrical since cost of travel is the same both ways
+                      {10, INF, 20,  6,  3}, // travel from city 1
+                      {8,   20, INF, 4,  2}, // travel from city 2
+                      {19,  6,  4, INF,  7}, // etc...
                       {12,  3,  2,   7, INF}};
 
     // Rozwiązania:

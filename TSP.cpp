@@ -32,7 +32,7 @@ path_t StageState::get_path() {
  * Get minimum values from each row and returns them.
  * @return Vector of minimum values in row.
  */
-std::vector<cost_t> CostMatrix::get_min_values_in_rows() const {
+std::vector<cost_t> CostMatrix::get_min_values_in_rows() const { // rows of cost matrix represent starting cities
     std::vector<cost_t> min_values;
     min_values.reserve(matrix_.size());
 
@@ -84,7 +84,7 @@ cost_t CostMatrix::reduce_rows() {
  * Get minimum values from each column and returns them.
  * @return Vector of minimum values in columns.
  */
-std::vector<cost_t> CostMatrix::get_min_values_in_cols() const {
+std::vector<cost_t> CostMatrix::get_min_values_in_cols() const { // cols in cost matrix represent destination cities
     if (matrix_.empty()) {
         return {};
     }
@@ -167,23 +167,45 @@ cost_t CostMatrix::get_vertex_cost(std::size_t row, std::size_t col) const {
  * @return The coordinates of the next vertex.
  */
 NewVertex StageState::choose_new_vertex() {
-    throw;  // TODO: Implement it!
+    NewVertex best_choice({}, -1); // Initialize with an invalid cost so that the first one we go to becomes a better choice
+    // best choice is a variable of type NewVertex representing the best choice of this particular StageState, with now coordinates and cost equal to -1
+    const auto& cm = get_matrix(); // we access the cost matrix (matrix_) by a getter function which returns a constant reference to the internal matrix of StageStage instance
+    for (std::size_t r = 0; r < cm.size(); ++r) {
+        for (std::size_t c = 0; c < cm.size(); ++c) {
+            if (cm[r][c] == 0) {
+                cost_t cost = cm.get_vertex_cost(r, c); // we get the costs of avoiding the zero cost vectors
+                if (cost > best_choice.cost) {
+                    best_choice.cost = cost;
+                    best_choice.coordinates = vertex_t(r, c);
+                }
+            }
+        }
+    }
+    return best_choice;
 }
 
 /**
  * Update the cost matrix with the new vertex.
  * @param new_vertex
  */
-void StageState::update_cost_matrix(vertex_t new_vertex) {
-    throw;  // TODO: Implement it!
+void StageState::update_cost_matrix(vertex_t new_vertex) {// discarding the rest of current row and column to block further travel options
+
+    // Set the chosen row and column to INF
+    for (std::size_t i = 0; i < matrix_.size(); ++i) {
+        matrix_[new_vertex.row][i] = INF;
+        matrix_[i][new_vertex.col] = INF;
+    }
+
+    // Forbid the reverse path
+    matrix_[new_vertex.col][new_vertex.row] = INF;
 }
 
 /**
  * Reduce the cost matrix.
  * @return The sum of reduced values.
  */
-cost_t StageState::reduce_cost_matrix() {
-    throw;  // TODO: Implement it!
+cost_t StageState::reduce_cost_matrix() { // StageStage bundles all the data needed to represent one step of the solution process
+    return matrix_.reduce_rows() + matrix_.reduce_cols(); // matrix_ is the cost matrix at current stage. StageState contains it, which represents the problem from its (current) perspective.
 }
 
 /**

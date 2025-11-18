@@ -64,7 +64,7 @@ std::ostream& operator<<(std::ostream& os, const CostMatrix& cm);
  * The <tt>StageState</tt> class stores information about the partial solution
  * at the given stage.
  */
-class StageState : public IStageState {
+class State : public IStageState {
 public:
 
 
