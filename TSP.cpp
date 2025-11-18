@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <stack>
 #include <optional>
+#include <numeric> // Added for std::accumulate
 
 std::ostream& operator<<(std::ostream& os, const CostMatrix& cm) {
     for (std::size_t r = 0; r < cm.size(); ++r) { // size_t is standard CPP language type, able to represent the size/index of the biggest object my system can handle, it's uint
@@ -33,20 +34,20 @@ path_t StageState::get_path() {
  */
 std::vector<cost_t> CostMatrix::get_min_values_in_rows() const {
     std::vector<cost_t> min_values;
+    min_values.reserve(matrix_.size());
+
     for (const auto& row : matrix_) {
+        // Corrected comparator lambda
         auto comparator = [](const cost_t& a, const cost_t& b){
-            if (is_inf(a)) { // is_inf() logic implemented in tsp_setup.cpp
+            if (is_inf(a)) {
                 return false;
             }
             if (is_inf(b)) {
                 return true;
             }
-            if (a<b) {
-                return a;
-            }
-            return a<b;
-        }
-        auto min_element = *std::min_element(row.begin(), row.end(), comparator); // dereferencing a pointer
+            return a < b; // Correctly returns a boolean
+        };
+        auto min_element = *std::min_element(row.begin(), row.end(), comparator);
 
         min_values.push_back(min_element);
     }
@@ -55,12 +56,28 @@ std::vector<cost_t> CostMatrix::get_min_values_in_rows() const {
 }
 
 /**
- * Reduce rows so that in each row at least one zero value is present.
- * @return Sum of values reduced in rows.
+ * Reduce rows so that in each row at least one zero value is present. If we dubstract min value from get_min_values_in_rows then it must happen
+ * @return Sum of values reduced in rows. - that's what will be added to the cost
  */
 cost_t CostMatrix::reduce_rows() {
+    std::vector<cost_t> min_values = get_min_values_in_rows();
     
-    throw;  // TODO: Implement it!
+    for (std::size_t idx = 0; idx < matrix_.size(); ++idx) {
+        if (is_inf(min_values[idx])) { // No reduction if min is INF
+             continue;
+        }
+        for (std::size_t jdx = 0; jdx < matrix_.size(); ++jdx) {
+            if (!is_inf(matrix_[idx][jdx])) {
+                matrix_[idx][jdx] -= min_values[idx];
+            }
+        }
+    }
+
+    // Use std::accumulate to sum the minimums, ignoring INF values
+    return std::accumulate(min_values.begin(), min_values.end(), 0,
+                           [](cost_t acc, cost_t val) {
+                               return is_inf(val) ? acc : acc + val;
+                           });
 }
 
 /**
@@ -68,8 +85,19 @@ cost_t CostMatrix::reduce_rows() {
  * @return Vector of minimum values in columns.
  */
 std::vector<cost_t> CostMatrix::get_min_values_in_cols() const {
-    std::vector<cost_t> min_values;
-    throw;  // TODO: Implement it!
+    if (matrix_.empty()) {
+        return {};
+    }
+
+    std::vector<cost_t> min_values(matrix_.size(), INF);
+    for (std::size_t c = 0; c < matrix_.size(); ++c) {
+        for (std::size_t r = 0; r < matrix_.size(); ++r) {
+            if (!is_inf(matrix_[r][c]) && matrix_[r][c] < min_values[c]) {
+                min_values[c] = matrix_[r][c];
+            }
+        }
+    }
+    return min_values;
 }
 
 /**
@@ -77,7 +105,23 @@ std::vector<cost_t> CostMatrix::get_min_values_in_cols() const {
  * @return Sum of values reduced in columns.
  */
 cost_t CostMatrix::reduce_cols() {
-    throw;  // TODO: Implement it!
+    std::vector<cost_t> min_values = get_min_values_in_cols();
+
+    for (std::size_t c = 0; c < matrix_.size(); ++c) {
+        if (is_inf(min_values[c])) {
+            continue;
+        }
+        for (std::size_t r = 0; r < matrix_.size(); ++r) {
+            if (!is_inf(matrix_[r][c])) {
+                matrix_[r][c] -= min_values[c];
+            }
+        }
+    }
+
+    return std::accumulate(min_values.begin(), min_values.end(), 0,
+                           [](cost_t acc, cost_t val) {
+                               return is_inf(val) ? acc : acc + val;
+                           });
 }
 
 /**
@@ -87,7 +131,29 @@ cost_t CostMatrix::reduce_cols() {
  * @return The sum of minimal values in row and col, excluding the intersection value.
  */
 cost_t CostMatrix::get_vertex_cost(std::size_t row, std::size_t col) const {
-    throw;  // TODO: Implement it!
+    cost_t min_in_row = INF;
+    // Find the minimum in the given row, excluding the element at 'col'
+    for (std::size_t c = 0; c < size(); ++c) {
+        if (c == col) {
+            continue;
+        }
+        if (matrix_[row][c] < min_in_row) {
+            min_in_row = matrix_[row][c];
+        }
+    }
+
+    cost_t min_in_col = INF;
+    // Find the minimum in the given column, excluding the element at 'row'
+    for (std::size_t r = 0; r < size(); ++r) {
+        if (r == row) {
+            continue;
+        }
+        if (matrix_[r][col] < min_in_col) {
+            min_in_col = matrix_[r][col];
+        }
+    }
+
+    return min_in_row + min_in_col;
 }
 
 /* PART 2 */
