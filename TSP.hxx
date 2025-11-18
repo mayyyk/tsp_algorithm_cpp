@@ -26,7 +26,7 @@ struct tsp_solution_t {
     path_t path;
 };
 
-using tsp_solutions_t = std::vector<tsp_solution_t>;
+using tsp_solutions_t = std::vector<tsp_solution_t>; // alias for vector containing solutions that have, cost_t (int) and path_t ()
 
 struct NewVertex {
     NewVertex(vertex_t v = {}, cost_t cost = 0) : coordinates(v), cost(cost) {}

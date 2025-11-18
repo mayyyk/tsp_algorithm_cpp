@@ -5,7 +5,7 @@
 #include <optional>
 
 std::ostream& operator<<(std::ostream& os, const CostMatrix& cm) {
-    for (std::size_t r = 0; r < cm.size(); ++r) {
+    for (std::size_t r = 0; r < cm.size(); ++r) { // size_t is standard CPP language type, able to represent the size/index of the biggest object my system can handle, it's uint
         for (std::size_t c = 0; c < cm.size(); ++c) {
             const auto& elem = cm[r][c];
             os << (is_inf(elem) ? "INF" : std::to_string(elem)) << " ";
@@ -32,7 +32,26 @@ path_t StageState::get_path() {
  * @return Vector of minimum values in row.
  */
 std::vector<cost_t> CostMatrix::get_min_values_in_rows() const {
-    throw;  // TODO: Implement it!
+    std::vector<cost_t> min_values;
+    for (const auto& row : matrix_) {
+        auto comparator = [](const cost_t& a, const cost_t& b){
+            if (is_inf(a)) { // is_inf() logic implemented in tsp_setup.cpp
+                return false;
+            }
+            if (is_inf(b)) {
+                return true;
+            }
+            if (a<b) {
+                return a;
+            }
+            return a<b;
+        }
+        auto min_element = *std::min_element(row.begin(), row.end(), comparator); // dereferencing a pointer
+
+        min_values.push_back(min_element);
+    }
+
+    return min_values;
 }
 
 /**
@@ -40,6 +59,7 @@ std::vector<cost_t> CostMatrix::get_min_values_in_rows() const {
  * @return Sum of values reduced in rows.
  */
 cost_t CostMatrix::reduce_rows() {
+    
     throw;  // TODO: Implement it!
 }
 

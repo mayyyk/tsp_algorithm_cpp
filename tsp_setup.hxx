@@ -12,7 +12,7 @@
 using cost_t = int;
 
 /// A cost representing a forbidden transition.
-const cost_t INF = std::numeric_limits<cost_t>::max();
+const cost_t INF = std::numeric_limits<cost_t>::max(); // the highest value for a given type, better than hardcoding a value
 
 /// Test if a cost represents a forbidden transition.
 bool is_inf(cost_t val);
