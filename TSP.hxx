@@ -64,12 +64,11 @@ std::ostream& operator<<(std::ostream& os, const CostMatrix& cm);
  * The <tt>StageState</tt> class stores information about the partial solution
  * at the given stage.
  */
-class State : public IStageState {
+class StageState {
 public:
-
-
     StageState(const CostMatrix& m, std::vector<vertex_t> p = {},
-            cost_t lb = 0) : matrix_(m), unsorted_path_(p), lower_bound_(lb) {};
+            cost_t lb = 0) : matrix_(m), unsorted_path_(p), lower_bound_(lb) {}
+
 
     path_t get_path();
     std::size_t get_level() const { return unsorted_path_.size(); }

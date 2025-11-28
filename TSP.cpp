@@ -4,6 +4,7 @@
 #include <stack>
 #include <optional>
 #include <numeric> // Added for std::accumulate
+#include <map> // Added for std::map
 
 std::ostream& operator<<(std::ostream& os, const CostMatrix& cm) {
     for (std::size_t r = 0; r < cm.size(); ++r) { // size_t is standard CPP language type, able to represent the size/index of the biggest object my system can handle, it's uint
@@ -25,7 +26,43 @@ std::ostream& operator<<(std::ostream& os, const CostMatrix& cm) {
  * @return The vector of consecutive vertex.
  */
 path_t StageState::get_path() {
-    throw;  // TODO: Implement it!
+    path_t result_path;
+    std::map<std::size_t, std::size_t> connections; // from_city -> to_city
+
+    // Add connections from unsorted_path_
+    for (const auto& v : unsorted_path_) {
+        connections[v.row] = v.col;
+    }
+
+    // Find the remaining two connections from the 2x2 matrix
+    // Iterate through the matrix to find non-INF entries that are not already in unsorted_path_
+    for (std::size_t r = 0; r < matrix_.size(); ++r) {
+        for (std::size_t c = 0; c < matrix_.size(); ++c) {
+            if (!is_inf(matrix_[r][c])) {
+                bool found_in_unsorted_path = false;
+                for (const auto& v : unsorted_path_) {
+                    if (v.row == r && v.col == c) {
+                        found_in_unsorted_path = true;
+                        break;
+                    }
+                }
+                if (!found_in_unsorted_path) {
+                    connections[r] = c;
+                }
+            }
+        }
+    }
+
+    // Reconstruct the path starting from city 0
+    std::size_t start_city = 0; 
+    std::size_t current_city = start_city;
+
+    for (std::size_t i = 0; i < matrix_.size(); ++i) {
+        result_path.push_back(current_city);
+        current_city = connections[current_city];
+    }
+
+    return result_path;
 }
 
 /**
